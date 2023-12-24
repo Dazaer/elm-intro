@@ -1,6 +1,6 @@
 module Main exposing (main)
 
-import Html exposing (Html, text, div, button, input, ul, li)
+import Html exposing (Html, text, div, span, button, input, ul, li)
 import Html.Attributes exposing (value, placeholder, type_)
 import Html.Events exposing (onClick, onInput)
 import Browser
@@ -14,7 +14,7 @@ type alias Model =
     newTodoItem: String
   }
 type Msg
-  = Increment | AddItem String | UpdateNewTodo String
+  = Increment | UpdateNewTodo String | AddItem String | CompleteItem String
 
 -- FUNCTIONS
 increment : Int -> Int
@@ -29,10 +29,20 @@ addItem: String -> Model -> List String
 addItem newItem model =
   newItem :: model.todoList
 
+completeItem: String -> Model -> List String
+completeItem completedItem model =
+    let
+      updatedTodoList = List.filter (\item -> item /= completedItem) model.todoList
+    in
+      updatedTodoList
+
 -- HTML FUNCTIONS
 todoItemView : String -> Html Msg
 todoItemView item =
-  li [] [ text item ]
+  li []
+    [ span [] [ text item ]
+    , button [ onClick (CompleteItem item) ] [ text "X" ]
+    ]
 -- STATE
 
 init : Model
@@ -51,14 +61,17 @@ update msg model =
       |> incrementModel
       |> Debug.log "Updated model"
 
+    UpdateNewTodo newInput ->
+      { model | newTodoItem = newInput }
+
     AddItem newItem -> 
       if String.isEmpty newItem then
         model
       else
-        {model | todoList = addItem newItem model, newTodoItem = ""}
-      
-    UpdateNewTodo newInput ->
-      { model | newTodoItem = newInput }
+        {model | todoList = addItem newItem model, newTodoItem = ""} 
+
+    CompleteItem completedItem ->
+      {model | todoList = completeItem completedItem model }
 
 view : Model -> Html Msg
 view model =

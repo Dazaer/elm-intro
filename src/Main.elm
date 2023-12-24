@@ -1,13 +1,9 @@
 module Main exposing (main)
 
-import Html exposing (Html, text, div, button, input)
-import Html.Attributes exposing (value, placeholder)
-import Html.Events exposing (onClick)
+import Html exposing (Html, text, div, button, input, ul, li)
+import Html.Attributes exposing (value, placeholder, type_)
+import Html.Events exposing (onClick, onInput)
 import Browser
-import Html.Events exposing (onInput)
-import Html.Attributes exposing (type_)
-import Html exposing (ul)
-import Html exposing (li)
 
 -- TYPES
 type alias Model = 
@@ -54,8 +50,13 @@ update msg model =
     Increment -> model 
       |> incrementModel
       |> Debug.log "Updated model"
+
     AddItem newItem -> 
-      {model | todoList = addItem newItem model, newTodoItem = ""}
+      if String.isEmpty newItem then
+        model
+      else
+        {model | todoList = addItem newItem model, newTodoItem = ""}
+      
     UpdateNewTodo newInput ->
       { model | newTodoItem = newInput }
 

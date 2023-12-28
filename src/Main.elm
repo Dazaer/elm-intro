@@ -1,7 +1,7 @@
-module Main exposing (main)
+module Main exposing (..)
 
 import Html exposing (Html, text, div, span, button, input, ul, li)
-import Html.Attributes exposing (value, placeholder, type_)
+import Html.Attributes exposing (value, placeholder, type_, class)
 import Html.Events exposing (onClick, onInput)
 import Browser
 
@@ -39,59 +39,65 @@ completeItem completedItem model =
 -- HTML FUNCTIONS
 todoItemView : String -> Html Msg
 todoItemView item =
-  li []
-    [ span [] [ text item ]
-    , button [ onClick (CompleteItem item) ] [ text "X" ]
+  li [class "todo-item"]
+    [ span [class "todo-text"] [ text item ]
+    , button [class "button", onClick (CompleteItem item) ] [ text "X" ]
     ]
 -- STATE
 
-init : Model
-init =
-  {
+init : () -> (Model, Cmd Msg)
+init _ =
+  ({
     score = 0,
     name = "John Doe",
     todoList = [],
     newTodoItem = ""
-  }
+  },
+  Cmd.none)
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    Increment -> model 
+    Increment -> ( model 
       |> incrementModel
       |> Debug.log "Updated model"
+      , Cmd.none)
 
     UpdateNewTodo newInput ->
-      { model | newTodoItem = newInput }
+      ({ model | newTodoItem = newInput }, Cmd.none)
 
     AddItem newItem -> 
       if String.isEmpty newItem then
-        model
+        (model, Cmd.none)
       else
-        {model | todoList = addItem newItem model, newTodoItem = ""} 
+        ({model | todoList = addItem newItem model, newTodoItem = ""}, Cmd.none)
 
     CompleteItem completedItem ->
-      {model | todoList = completeItem completedItem model }
+      ({model | todoList = completeItem completedItem model }, Cmd.none)
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.none
 
 view : Model -> Html Msg
 view model =
   div []
     [
-      input [placeholder "Specify new todo item", type_ "text", onInput UpdateNewTodo, value model.newTodoItem] [],
+      input [class "input-field", placeholder "Specify new todo item", type_ "text", onInput UpdateNewTodo, value model.newTodoItem] [],
       div [] [
         text "The current value is: ", text (String.fromInt model.score)
       ],
-      button [ onClick Increment ] [ text "Increase score" ],
-      button [ onClick (AddItem model.newTodoItem) ] [ text "Add Item" ],
+      button [class "button", onClick Increment ] [ text "Increase score" ],
+      button [class "button", onClick (AddItem model.newTodoItem) ] [ text "Add Item" ],
       div [] [
         text "LIST OF TODO ITEMS: ",
-        ul [] (List.map todoItemView model.todoList)
+        ul [class "todo-list"] (List.map todoItemView model.todoList)
       ]
     ]
 
-main : Program () Model Msg
+main : Program() Model Msg
 main = 
-  Browser.sandbox
+  Browser.element
     {
-      init = init, view = view, update = update
+      init = init, view = view, update = update, subscriptions = subscriptions
     }
